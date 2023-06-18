@@ -25,11 +25,11 @@ public class DamageHealtCollision : MonoBehaviour, ICollisionsComponent
                 {
                     if (isOnDamage)
                     {
-                        healt.Healt -= damage;
+                        healt.HealtContoll(damage);
                     }
                     else
                     {
-                        healt.Healt += damage;
+                        healt.HealtContoll(-damage);
                     }
 
                 }

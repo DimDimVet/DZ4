@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ShootComponent : MonoBehaviour, IShootComponent
 {
@@ -8,16 +9,17 @@ public class ShootComponent : MonoBehaviour, IShootComponent
     [SerializeField] private GameObject bullet;
     [SerializeField] private float bulletSpeed;
     [SerializeField] private Transform outBullet;
+    [SerializeField] private Text text;
     public bool IsModeBull = false;
     //соберем в лист стороние скрипты
     public List<MonoBehaviour> CollisionAction = new List<MonoBehaviour>();
-
     public float ShootDelay;
     private float shootTime = float.MinValue;
     private BullComponent scrBullet;
     private void Start()
     {
         scrBullet = bullet.GetComponent<BullComponent>();
+        text.text = $"Bullet = {Statistic.ShootCount}";
     }
 
     public void Shoot()
@@ -32,6 +34,10 @@ public class ShootComponent : MonoBehaviour, IShootComponent
         }
 
         Instantiate(bullet, outBullet.position, outBullet.rotation);
+        //static
+        Statistic.ShootCount++;
+        text.text = $"Bullet = {Statistic.ShootCount}";
+
         if (IsModeBull)
         {
             scrBullet.IsMode=true;
