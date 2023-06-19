@@ -8,7 +8,6 @@ using System.Text;
 
 public static class GoogleTools
 {
-
     public static string NameFile = "DataDZ4.json";
     public static List<File> GetListFile()//Запросим из хранилища лист существующих файлов
     {
@@ -17,23 +16,25 @@ public static class GoogleTools
          {
              getList = fileList.Files;
          };
-        return getList;
+       return getList;
     }
 
     public static File SaveFile(string data)//запишем файл в бинарном формиате
     {
-        File file = new File {Name=$"{NameFile}",Content=Encoding.ASCII.GetBytes(data) };
+        File file = new File {Name= $"{NameFile}", Content=Encoding.ASCII.GetBytes(data) };
         GoogleDriveFiles.Create(file).Send();
         return file;
     }
 
-    public static File LoadFile(string idFile)//получим файл в бинарном формиате по id из листа
+    public static string LoadFile(string idFile)//получим файл в бинарном формиате по id из листа
     {
         File getFile = new File();
         GoogleDriveFiles.Download(idFile).Send().OnDone += file =>
          {
              getFile = file;
          };
-        return getFile;
+        string str = Encoding.ASCII.GetString(getFile.Content, 0, getFile.Content.Length);
+        return str;
+        
     }
 }

@@ -17,10 +17,6 @@ public class HealtComponent : MonoBehaviour
         
         text.text = $"Healt = {Healt}";
     }
-    private void Update()
-    {
-        //HealtContoll();
-    }
 
     public void HealtContoll(int damage)
     {

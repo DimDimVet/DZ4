@@ -12,25 +12,60 @@ public class UpLoadDataPlayer : MonoBehaviour
     public HealtComponent healtComponent;
     private DataPlayer dataPlayer;
     private string strId;
-    void Start()
+    private string hashKey = "DataPlayer";
+    private void Awake()
     {
         GetGoogleFile();
         StartData();
-        //
     }
+
+    //private IEnumerator Start()
+    //{
+    //    AuthController.RefreshAccessToken();
+    //    while (AuthController.IsRefreshingAccessToken)
+    //        yield return null;
+    //    // Listing files.
+    //    GoogleDriveFiles.List().Send().OnDone += fileList =>
+    //    {
+    //        var files = fileList.Files;
+    //        foreach (var f in files)
+    //        {
+    //            Debug.Log(f);
+
+    //        }
+    //    };
+    //    //GetGoogleFile();
+    //    //StartData();
+    //    //
+    //}
     private void StartData()
     {
-        if (PlayerPrefs.HasKey("DataPlayer"))
+        if (GetGoogleFile()!="")
         {
-            string jsonString = PlayerPrefs.GetString("DataPlayer");
+            string jsonString = GetGoogleFile();
             if (!jsonString.Equals(string.Empty, StringComparison.Ordinal))
             {
                 dataPlayer = JsonUtility.FromJson<DataPlayer>(jsonString);
             }
+            else
+            {
+                dataPlayer = new DataPlayer();
+            }
         }
         else
         {
-            dataPlayer = new DataPlayer();
+            if (PlayerPrefs.HasKey($"{hashKey}"))
+            {
+                string jsonString = PlayerPrefs.GetString($"{hashKey}");
+                if (!jsonString.Equals(string.Empty, StringComparison.Ordinal))
+                {
+                    dataPlayer = JsonUtility.FromJson<DataPlayer>(jsonString);
+                }
+            }
+            else
+            {
+                dataPlayer = new DataPlayer();
+            }
         }
 
         //заполняем данными
@@ -38,24 +73,27 @@ public class UpLoadDataPlayer : MonoBehaviour
         Statistic.ShootCount = dataPlayer.shootCount;//обращаемся к статичному классу
     }
 
-    private void GetGoogleFile()
+    private string GetGoogleFile()
     {
         List<UnityGoogleDrive.Data.File> files = GoogleTools.GetListFile();
-        foreach (var item in files)
+        string jsonString="";
+
+        for (int i = 0; i < files.Count; i++)
         {
-            Debug.Log(item);
+            if (files[i].Name == GoogleTools.NameFile)
+            {
+                strId = files[i].Id;
+            }
         }
-        //for (int i = 0; i < files.Count; i++)
-        //{
-        //    if (files[i].Name== GoogleTools.NameFile)
-        //    {
-        //        strId = files[i].Id;
-        //    }
-        //}
-        //if (strId!=null)
-        //{
-        //    UnityGoogleDrive.Data.File file =GoogleTools.LoadFile(strId);
-        //}
+        if (strId != null)
+        {
+            jsonString = GoogleTools.LoadFile(strId);
+            return jsonString;
+        }
+        else
+        {
+            return jsonString;
+        }
     }
 
     void OnApplicationQuit()
