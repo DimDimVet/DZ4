@@ -19,6 +19,22 @@ public class ShootComponent : MonoBehaviour, IShootComponent
     private void Start()
     {
         scrBullet = bullet.GetComponent<BullComponent>();
+        StartCoroutine(Example());
+    }
+
+    private IEnumerator Example()
+    {
+        int i = 0;
+        while (i < 3)
+        {
+            yield return new WaitForSeconds(0.2f);
+            i++;
+        }
+        DataStart();
+    }
+
+    private void DataStart()
+    {
         text.text = $"Bullet = {Statistic.ShootCount}";
     }
 

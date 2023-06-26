@@ -7,69 +7,89 @@ using UnityGoogleDrive;
 using UnityGoogleDrive.Data;
 using System.Text;
 using Firebase.Database;
+using UnityEngine.UI;
 
 public class UpLoadDataPlayer : MonoBehaviour
 {
-    private HealtComponent healtComponent;
+    //UI
+    [SerializeField] private Text saveData;
+    [SerializeField] private Text loadLocalData;
+    [SerializeField] private Text loadFireBaseData;
+    //
+    [SerializeField] private HealtComponent healtComponent;
     private DataPlayer dataPlayer;
-    private string[] pole = { "shootCount", "healtPlayer" };
-    public int frame;
     private string hashKey = "DataPlayer";
-    private Dictionary<string, int> listData;
+
     private void Awake()
     {
         StartCoroutine(Example());
     }
+
     private IEnumerator Example()
     {
         int i = 0;
         while (i<3)
         {
-            listData = FireBaseTool.LoadData(pole,hashKey);
-            yield return new WaitForSeconds(1);
+            FireBaseTool.LoadData(hashKey);
+            yield return new WaitForSeconds(0.2f);
             i++;
-
         }
-        StartData();
+        LoadData();
     }
-    private void StartData()
+    private void LoadData()
     {
-        healtComponent = new HealtComponent();
+        Time.timeScale = 1f;
+        int swithTypeLoad = 0;
+        DataPlayer dataPlayerFireBase=new DataPlayer();
+        DataPlayer dataPlayerLocal = new DataPlayer();
 
-        if (listData!=null)
+        if (FireBaseTool.Snapshot!=null)
         {
-            dataPlayer = new DataPlayer();
-            foreach (var item in listData)
+            dataPlayerFireBase = new DataPlayer
             {
-                for (int i = 0; i < pole.Length; i++)
-                {
-                    if (pole[i]== item.Key)
-                    {
-                        dataPlayer.shootCount = item.Value;
-                    }
-                }
+                healtPlayer = Int32.Parse(FireBaseTool.Snapshot.Child("healtPlayer").GetValue(true).ToString()),
+                shootCount = Int32.Parse(FireBaseTool.Snapshot.Child("shootCount").GetValue(true).ToString())
+            };
+            swithTypeLoad = 1;
+            loadFireBaseData.text = $"healtPlayer={dataPlayerFireBase.healtPlayer} shootCount={dataPlayerFireBase.shootCount}";
+        }
 
+        if (PlayerPrefs.HasKey($"{hashKey}"))
+        {
+            string jsonString = PlayerPrefs.GetString($"{hashKey}");
+            if (!jsonString.Equals(string.Empty, StringComparison.Ordinal))
+            {
+                dataPlayerLocal = JsonUtility.FromJson<DataPlayer>(jsonString);
+                swithTypeLoad = 2;
             }
+            loadLocalData.text = $"healtPlayer={dataPlayerLocal.healtPlayer} shootCount={dataPlayerLocal.shootCount}";
         }
         else
         {
-            //if (PlayerPrefs.HasKey($"{hashKey}"))
-            //{
-            //    string jsonString = PlayerPrefs.GetString($"{hashKey}");
-            //    if (!jsonString.Equals(string.Empty, StringComparison.Ordinal))
-            //    {
-            //        dataPlayer = JsonUtility.FromJson<DataPlayer>(jsonString);
-            //    }
-            //}
-            //else
-            //{
-            //    dataPlayer = new DataPlayer();
-            //}
+            dataPlayer = new DataPlayer();
+            swithTypeLoad = 0;
         }
 
         //заполняем данными
-        healtComponent.Healt = dataPlayer.healtPlayer;
-        Statistic.ShootCount = dataPlayer.shootCount;//обращаемся к статичному классу
+        
+        switch (swithTypeLoad)
+        {
+            case 0:
+                healtComponent.Healt = dataPlayer.healtPlayer;
+                Statistic.ShootCount = dataPlayer.shootCount;//обращаемся к статичному классу
+                break;
+            case 1:
+                healtComponent.Healt = dataPlayerFireBase.healtPlayer;
+                Statistic.ShootCount = dataPlayerFireBase.shootCount;//обращаемся к статичному классу
+                break;
+            case 2:
+                healtComponent.Healt = dataPlayerLocal.healtPlayer;
+                Statistic.ShootCount = dataPlayerLocal.shootCount;//обращаемся к статичному классу
+                break;
+            default:
+                break;
+        }
+     
     }
 
     //GoogleOld
@@ -120,9 +140,10 @@ public class UpLoadDataPlayer : MonoBehaviour
         //local
         PlayerPrefs.SetString(hashKey, jsonString);
         //FireBase
-        //fireBase.SaveData(hashKey, jsonString);
+        FireBaseTool.SaveData(hashKey, jsonString);
         //GoogleOld
         //SetGoogleFail(jsonString);
+        saveData.text = $"healtPlayer={dataPlayer.healtPlayer} shootCount={dataPlayer.shootCount}";
     }
 }
 
